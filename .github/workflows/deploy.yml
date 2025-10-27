@@ -11,17 +11,17 @@ jobs:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.3.0'  # Match exactly with your local version
+          flutter-version: '3.35.7'   # use a version that provides Dart 3.9.x
           channel: 'stable'
       
       - name: Enable Web
         run: flutter config --enable-web
         
       - name: Get dependencies
-        run: flutter pub get
-        
+        run: cd hajjaam_app && flutter pub get
+
       - name: Build
-        run: flutter build web --base-href "/hajjaam_app/"
+        run: cd hajjaam_app && flutter build web --base-href "/hajjaam_app/"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
