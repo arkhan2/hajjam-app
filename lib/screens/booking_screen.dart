@@ -18,7 +18,7 @@ class _BookingScreenState extends State<BookingScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String _customerName = '';
-  String _notes = '';
+  final String _notes = '';
 
   // Storage service
   late StorageService _storageService;
@@ -524,7 +524,7 @@ class _BookingScreenState extends State<BookingScreen> {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-    return '$hour:${minute} $period';
+    return '$hour:$minute $period';
   }
 
   @override
