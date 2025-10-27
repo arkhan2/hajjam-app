@@ -115,7 +115,7 @@ class Appointment {
         : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
     final minute = dateTime.minute.toString().padLeft(2, '0');
     final period = dateTime.hour < 12 ? 'AM' : 'PM';
-    return '$hour:${minute} $period';
+    return '$hour:$minute $period';
   }
 
   String get statusDisplayName {
