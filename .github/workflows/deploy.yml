@@ -4,14 +4,21 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write  # Grant workflow permission to push
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.7'   # use a version that provides Dart 3.9.x
+          flutter-version: '3.35.7'   # Ensure Dart 3.9.x
           channel: 'stable'
       
       - name: Enable Web
@@ -20,11 +27,13 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Build
+      - name: Build Web
         run: flutter build web --base-href "/hajjam-app/"
 
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GH_PAT  }}
           publish_dir: ./build/web
+          # optional: specify branch, default is 'gh-pages'
+          # publish_branch: gh-pages
