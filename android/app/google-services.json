@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "834677698431",
+    "project_id": "hajjam-firebase-project",
+    "storage_bucket": "hajjam-firebase-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:834677698431:android:0438e947c3afaf950a744a",
+        "android_client_info": {
+          "package_name": "com.example.hajjaam_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxxfpVaok6q_CQecSyg3ndoY1szte8R8k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

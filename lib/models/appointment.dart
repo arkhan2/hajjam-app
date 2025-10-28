@@ -1,5 +1,6 @@
 class Appointment {
   final String id;
+  final String userId;
   final String serviceName;
   final DateTime dateTime;
   final String customerName;
@@ -9,6 +10,7 @@ class Appointment {
 
   const Appointment({
     required this.id,
+    required this.userId,
     required this.serviceName,
     required this.dateTime,
     required this.customerName,
@@ -17,29 +19,11 @@ class Appointment {
     required this.createdAt,
   });
 
-  // Create a new appointment with generated ID
-  factory Appointment.create({
-    required String serviceName,
-    required DateTime dateTime,
-    required String customerName,
-    String status = 'pending',
-    String? notes,
-  }) {
-    return Appointment(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      serviceName: serviceName,
-      dateTime: dateTime,
-      customerName: customerName,
-      status: status,
-      notes: notes,
-      createdAt: DateTime.now(),
-    );
-  }
-
   // Convert to JSON for storage
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'userId': userId,
       'serviceName': serviceName,
       'dateTime': dateTime.toIso8601String(),
       'customerName': customerName,
@@ -53,6 +37,7 @@ class Appointment {
   factory Appointment.fromJson(Map<String, dynamic> json) {
     return Appointment(
       id: json['id'] as String,
+      userId: json['userId'] as String,
       serviceName: json['serviceName'] as String,
       dateTime: DateTime.parse(json['dateTime'] as String),
       customerName: json['customerName'] as String,
@@ -65,6 +50,7 @@ class Appointment {
   // Create a copy with updated fields
   Appointment copyWith({
     String? id,
+    String? userId,
     String? serviceName,
     DateTime? dateTime,
     String? customerName,
@@ -74,6 +60,7 @@ class Appointment {
   }) {
     return Appointment(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       serviceName: serviceName ?? this.serviceName,
       dateTime: dateTime ?? this.dateTime,
       customerName: customerName ?? this.customerName,

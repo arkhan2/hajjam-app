@@ -3,14 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'booking_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  final VoidCallback? onBookingSuccess;
-
-  const HomeScreen({super.key, this.onBookingSuccess});
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: SafeArea(
@@ -32,14 +29,14 @@ class HomeScreen extends StatelessWidget {
               Text(
                 "Welcome back 👋",
                 style: theme.textTheme.headlineMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withAlpha(178),
                 ),
               ),
               const SizedBox(height: 16),
               Text(
                 "Book your next haircut with ease.",
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withAlpha(153),
                 ),
               ),
 
@@ -54,9 +51,9 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: isDark
-                          ? Colors.black.withOpacity(0.3)
-                          : Colors.black.withOpacity(0.05),
+                      color: theme.brightness == Brightness.dark
+                          ? Colors.black.withAlpha(77)
+                          : Colors.black.withAlpha(13),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -91,9 +88,7 @@ class HomeScreen extends StatelessWidget {
                           Navigator.push(
                             context,
                             CupertinoPageRoute(
-                              builder: (_) => BookingScreen(
-                                onBookingSuccess: onBookingSuccess,
-                              ),
+                              builder: (_) => const BookingScreen(),
                             ),
                           );
                         },
@@ -174,7 +169,7 @@ class HomeScreen extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
+          color: theme.colorScheme.outline.withAlpha(25),
           width: 1,
         ),
       ),
@@ -193,7 +188,7 @@ class HomeScreen extends StatelessWidget {
           Text(
             subtitle,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withAlpha(153),
             ),
           ),
         ],

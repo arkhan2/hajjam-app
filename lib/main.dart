@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'firebase_options.dart';
 import 'screens/main_screen.dart';
 import 'screens/booking_screen.dart';
 import 'screens/auth/login_screen.dart';
-import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    // Initialize Firebase safely
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Catch any initialization errors
+    debugPrint("❌ Firebase initialization failed: $e");
+  }
+
   runApp(const HajjaamApp());
 }
 
@@ -30,58 +44,31 @@ class HajjaamApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatefulWidget {
+class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
   @override
-  State<AuthWrapper> createState() => _AuthWrapperState();
-}
-
-class _AuthWrapperState extends State<AuthWrapper> {
-  late AuthService _authService;
-  bool _isLoading = true;
-  bool _isLoggedIn = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeAuth();
-  }
-
-  Future<void> _initializeAuth() async {
-    try {
-      _authService = await AuthService.getInstance();
-      final isLoggedIn = _authService.isLoggedIn;
-
-      if (mounted) {
-        setState(() {
-          _isLoggedIn = isLoggedIn;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('❌ Error initializing auth: $e');
-      if (mounted) {
-        setState(() {
-          _isLoggedIn = false;
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      // Show a themed loading screen instead of plain scaffold
-      return MaterialApp(
-        theme: AppTheme.lightTheme,
-        home: const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-      );
-    }
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Show loading indicator while connecting
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
-    return _isLoggedIn ? const MainScreen() : const LoginScreen();
+        // If user is logged in → go to main screen
+        if (snapshot.hasData) {
+          return const MainScreen();
+        }
+
+        // If not logged in → show login screen
+        return const LoginScreen();
+      },
+    );
   }
 }

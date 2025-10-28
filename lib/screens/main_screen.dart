@@ -12,8 +12,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final GlobalKey<State<MyAppointmentsScreen>> _appointmentsKey =
-      GlobalKey<State<MyAppointmentsScreen>>();
 
   // Keep both screens persistent using IndexedStack
   late final List<Widget> _screens;
@@ -22,8 +20,8 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _screens = [
-      HomeScreen(onBookingSuccess: refreshAppointments),
-      MyAppointmentsScreen(key: _appointmentsKey),
+      const HomeScreen(),
+      const MyAppointmentsScreen(),
       const ProfileScreen(),
     ];
   }
@@ -34,19 +32,9 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  void refreshAppointments() {
-    // Cast to the specific state type to access the refresh method
-    final appointmentsState = _appointmentsKey.currentState;
-    if (appointmentsState != null && appointmentsState.mounted) {
-      // Call the refresh method if it exists
-      (appointmentsState as dynamic).refreshAppointments();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: _screens),
@@ -55,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
           color: theme.cardColor,
           border: Border(
             top: BorderSide(
-              color: theme.colorScheme.outline.withOpacity(0.1),
+              color: theme.colorScheme.outline.withAlpha(25),
               width: 0.5,
             ),
           ),
@@ -111,7 +99,7 @@ class _MainScreenState extends State<MainScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primary.withOpacity(0.1)
+              ? theme.colorScheme.primary.withAlpha(25)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
@@ -125,7 +113,7 @@ class _MainScreenState extends State<MainScreen> {
                 size: 24,
                 color: isSelected
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface.withOpacity(0.6),
+                    : theme.colorScheme.onSurface.withAlpha(153),
               ),
             ),
             const SizedBox(height: 4),
@@ -135,7 +123,7 @@ class _MainScreenState extends State<MainScreen> {
                   theme.textTheme.bodySmall?.copyWith(
                     color: isSelected
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.6),
+                        : theme.colorScheme.onSurface.withAlpha(153),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ) ??
                   const TextStyle(),

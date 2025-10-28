@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class User {
   final String id;
   final String email;
@@ -17,29 +19,10 @@ class User {
     this.profileImageUrl,
   });
 
-  // Factory constructor to create a new user
-  factory User.create({
-    required String email,
-    required String name,
-    required String userType,
-    String? phoneNumber,
-    String? profileImageUrl,
-  }) {
-    return User(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      email: email,
-      name: name,
-      userType: userType,
-      createdAt: DateTime.now(),
-      phoneNumber: phoneNumber,
-      profileImageUrl: profileImageUrl,
-    );
-  }
-
   // Convert User object to JSON map
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'uid': id,
       'email': email,
       'name': name,
       'userType': userType,
@@ -52,7 +35,7 @@ class User {
   // Create User object from JSON map
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'] as String,
+      id: json['uid'] as String,
       email: json['email'] as String,
       name: json['name'] as String,
       userType: json['userType'] as String,
@@ -69,8 +52,8 @@ class User {
     String? name,
     String? userType,
     DateTime? createdAt,
-    String? phoneNumber,
-    String? profileImageUrl,
+    ValueGetter<String?>? phoneNumber,
+    ValueGetter<String?>? profileImageUrl,
   }) {
     return User(
       id: id ?? this.id,
@@ -78,8 +61,9 @@ class User {
       name: name ?? this.name,
       userType: userType ?? this.userType,
       createdAt: createdAt ?? this.createdAt,
-      phoneNumber: phoneNumber ?? this.phoneNumber,
-      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      phoneNumber: phoneNumber != null ? phoneNumber() : this.phoneNumber,
+      profileImageUrl:
+          profileImageUrl != null ? profileImageUrl() : this.profileImageUrl,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // ✅ Added for error handling
 import '../../services/auth_service.dart';
 import '../main_screen.dart';
 import 'login_screen.dart';
@@ -18,21 +19,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
-  late AuthService _authService;
+  final AuthService _authService = AuthService();
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String _selectedUserType = 'user';
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeAuthService();
-  }
-
-  Future<void> _initializeAuthService() async {
-    _authService = await AuthService.getInstance();
-  }
+  String? _errorText; // ✅ For showing error message on screen
 
   @override
   void dispose() {
@@ -47,7 +40,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorText = null; // ✅ Reset error on new attempt
+    });
 
     try {
       final result = await _authService.signUp(
@@ -61,7 +57,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (result.isSuccess && result.user != null) {
-        // Navigate to main screen
         if (mounted) {
           Navigator.pushReplacement(
             context,
@@ -69,18 +64,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         }
       } else {
-        _showErrorSnackBar(result.errorMessage ?? 'Sign up failed');
+        _showError(result.errorMessage ?? 'Sign up failed');
       }
+    } on FirebaseAuthException catch (e) {
+      // ✅ Handle specific Firebase errors clearly
+      String message;
+      switch (e.code) {
+        case 'email-already-in-use':
+          message = 'This email is already registered.';
+          break;
+        case 'invalid-email':
+          message = 'Invalid email format.';
+          break;
+        case 'weak-password':
+          message = 'Password must be at least 6 characters.';
+          break;
+        case 'operation-not-allowed':
+          message = 'Email/password accounts are not enabled.';
+          break;
+        default:
+          message = e.message ?? 'Authentication error occurred.';
+      }
+      _showError(message);
     } catch (e) {
-      _showErrorSnackBar('An error occurred. Please try again.');
+      _showError('An unexpected error occurred. Please try again.');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _showErrorSnackBar(String message) {
+  void _showError(String message) {
+    setState(() => _errorText = message);
+
+    // ✅ Keep your red SnackBar as visual alert
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -119,7 +135,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withAlpha(25),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -130,7 +146,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
 
                 const SizedBox(height: 24),
-
                 Text(
                   'Create Account',
                   textAlign: TextAlign.center,
@@ -139,18 +154,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 Text(
                   'Join Hajjaam and book your appointments',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withAlpha(178),
                   ),
                 ),
+                const SizedBox(height: 24),
 
-                const SizedBox(height: 40),
+                // ✅ Inline error display
+                if (_errorText != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(CupertinoIcons.exclamationmark_triangle,
+                            color: Colors.red),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorText!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // User Type Selection
                 Text(
@@ -180,10 +220,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
 
-                // Name Field
                 _buildTextField(
                   controller: _nameController,
                   label: 'Full Name',
@@ -199,10 +237,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 20),
 
-                // Email Field
                 _buildTextField(
                   controller: _emailController,
                   label: 'Email',
@@ -221,10 +257,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 20),
 
-                // Phone Field (Optional)
                 _buildTextField(
                   controller: _phoneController,
                   label: 'Phone Number (Optional)',
@@ -232,10 +266,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   keyboardType: TextInputType.phone,
                   prefixIcon: CupertinoIcons.phone,
                 ),
-
                 const SizedBox(height: 20),
 
-                // Password Field
                 _buildTextField(
                   controller: _passwordController,
                   label: 'Password',
@@ -247,7 +279,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       _obscurePassword
                           ? CupertinoIcons.eye_slash
                           : CupertinoIcons.eye,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withAlpha(153),
                     ),
                     onPressed: () {
                       setState(() => _obscurePassword = !_obscurePassword);
@@ -263,10 +295,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 20),
 
-                // Confirm Password Field
                 _buildTextField(
                   controller: _confirmPasswordController,
                   label: 'Confirm Password',
@@ -278,13 +308,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       _obscureConfirmPassword
                           ? CupertinoIcons.eye_slash
                           : CupertinoIcons.eye,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withAlpha(153),
                     ),
                     onPressed: () {
-                      setState(
-                        () =>
-                            _obscureConfirmPassword = !_obscureConfirmPassword,
-                      );
+                      setState(() =>
+                          _obscureConfirmPassword = !_obscureConfirmPassword);
                     },
                   ),
                   validator: (value) {
@@ -297,10 +325,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 32),
 
-                // Sign Up Button
                 SizedBox(
                   height: 56,
                   child: ElevatedButton(
@@ -309,7 +335,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
@@ -325,17 +350,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
 
-                // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Already have an account? ',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        color: theme.colorScheme.onSurface.withAlpha(178),
                       ),
                     ),
                     GestureDetector(
@@ -357,7 +380,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 40),
               ],
             ),
@@ -380,13 +402,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primary.withOpacity(0.1)
+              ? theme.colorScheme.primary.withAlpha(25)
               : theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? theme.colorScheme.primary
-                : theme.colorScheme.outline.withOpacity(0.2),
+                : theme.colorScheme.outline.withAlpha(51),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -396,7 +418,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               icon,
               color: isSelected
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withOpacity(0.6),
+                  : theme.colorScheme.onSurface.withAlpha(153),
               size: 24,
             ),
             const SizedBox(height: 8),
@@ -447,12 +469,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withAlpha(128),
             ),
             prefixIcon: prefixIcon != null
                 ? Icon(
                     prefixIcon,
-                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    color: theme.colorScheme.onSurface.withAlpha(153),
                     size: 20,
                   )
                 : null,
@@ -461,37 +483,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
             fillColor: theme.cardColor,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outline.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: theme.colorScheme.outline.withOpacity(0.2),
-                width: 1,
-              ),
+              borderSide:
+                  BorderSide(color: theme.colorScheme.outline.withAlpha(51)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(
-                color: theme.colorScheme.primary,
-                width: 2,
-              ),
+              borderSide:
+                  BorderSide(color: theme.colorScheme.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.red, width: 1),
+              borderSide: const BorderSide(color: Colors.red),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: const BorderSide(color: Colors.red, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],

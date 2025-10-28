@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../models/appointment.dart';
+import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 
 class BookingScreen extends StatefulWidget {
-  final VoidCallback? onBookingSuccess;
-
-  const BookingScreen({super.key, this.onBookingSuccess});
+  const BookingScreen({super.key});
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -17,22 +16,12 @@ class _BookingScreenState extends State<BookingScreen> {
   String _selectedService = '';
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  String _customerName = '';
   final String _notes = '';
 
-  // Storage service
-  late StorageService _storageService;
+  // Services
+  final StorageService _storageService = StorageService();
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeStorage();
-  }
-
-  Future<void> _initializeStorage() async {
-    _storageService = await StorageService.getInstance();
-  }
 
   // Example services (you'll replace with dynamic data later)
   final List<Map<String, dynamic>> _services = [
@@ -83,7 +72,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withOpacity(0.3),
+                  color: theme.colorScheme.onSurface.withAlpha(77),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -175,7 +164,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.onSurface.withOpacity(0.3),
+                  color: theme.colorScheme.onSurface.withAlpha(77),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -237,6 +226,7 @@ class _BookingScreenState extends State<BookingScreen> {
     if (_selectedService.isEmpty ||
         _selectedDate == null ||
         _selectedTime == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Please choose service, date and time'),
@@ -267,13 +257,6 @@ class _BookingScreenState extends State<BookingScreen> {
             Text('Service: $_selectedService'),
             Text('Date: $dateStr'),
             Text('Time: $timeStr'),
-            const SizedBox(height: 16),
-            const Text('Please enter your name:'),
-            const SizedBox(height: 8),
-            CupertinoTextField(
-              placeholder: 'Your name',
-              onChanged: (value) => _customerName = value,
-            ),
           ],
         ),
         actions: [
@@ -295,15 +278,14 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _saveAppointment() async {
-    if (_customerName.trim().isEmpty) {
-      // Show the dialog again with focus on the text field
-      _showBookingConfirmation();
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
+      final user = await _authService.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
       // Combine date and time
       final appointmentDateTime = DateTime(
         _selectedDate!.year,
@@ -314,18 +296,22 @@ class _BookingScreenState extends State<BookingScreen> {
       );
 
       // Create appointment
-      final appointment = Appointment.create(
+      final appointment = Appointment(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: user.id,
         serviceName: _selectedService,
         dateTime: appointmentDateTime,
-        customerName: _customerName.trim(),
+        customerName: user.name,
         status: 'pending',
         notes: _notes.trim().isEmpty ? null : _notes.trim(),
+        createdAt: DateTime.now(),
       );
 
       // Save to storage
       await _storageService.saveAppointment(appointment);
 
       // Show success message
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Appointment booked successfully!'),
@@ -337,12 +323,11 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       );
 
-      // Refresh appointments if callback is provided
-      widget.onBookingSuccess?.call();
-
       // Navigate back to home
+      if (!mounted) return;
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to book appointment: $e'),
@@ -379,13 +364,13 @@ class _BookingScreenState extends State<BookingScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: selected
-                  ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                  ? Theme.of(context).colorScheme.primary.withAlpha(25)
                   : Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: selected
                     ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                    : Theme.of(context).colorScheme.outline.withAlpha(25),
                 width: selected ? 2 : 1,
               ),
             ),
@@ -399,7 +384,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         ? Theme.of(context).colorScheme.primary
                         : Theme.of(
                             context,
-                          ).colorScheme.primary.withOpacity(0.1),
+                          ).colorScheme.primary.withAlpha(25),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -433,7 +418,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(
                             context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
+                          ).colorScheme.onSurface.withAlpha(178),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -454,7 +439,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withOpacity(0.8),
+                                    ).colorScheme.onSurface.withAlpha(204),
                                     fontWeight: FontWeight.w500,
                                   ),
                             ),
@@ -562,7 +547,7 @@ class _BookingScreenState extends State<BookingScreen> {
               Text(
                 'Select the service you\'d like to book',
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withAlpha(178),
                 ),
               ),
               const SizedBox(height: 24),
@@ -672,13 +657,13 @@ class _BookingScreenState extends State<BookingScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isSelected
-                ? theme.colorScheme.primary.withOpacity(0.1)
+                ? theme.colorScheme.primary.withAlpha(25)
                 : theme.cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.outline.withOpacity(0.1),
+                  : theme.colorScheme.outline.withAlpha(25),
               width: isSelected ? 2 : 1,
             ),
           ),
@@ -689,7 +674,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 size: 20,
                 color: isSelected
                     ? theme.colorScheme.primary
-                    : theme.colorScheme.primary.withOpacity(0.7),
+                    : theme.colorScheme.primary.withAlpha(178),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -698,7 +683,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: isSelected
                         ? theme.colorScheme.primary
-                        : theme.colorScheme.onSurface.withOpacity(0.6),
+                        : theme.colorScheme.onSurface.withAlpha(153),
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),

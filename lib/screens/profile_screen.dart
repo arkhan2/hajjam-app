@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../services/auth_service.dart';
-import '../models/user_model.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -12,19 +12,18 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late AuthService _authService;
+  final AuthService _authService = AuthService();
   User? _currentUser;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initializeAuthService();
+    _loadCurrentUser();
   }
 
-  Future<void> _initializeAuthService() async {
-    _authService = await AuthService.getInstance();
-    final user = _authService.currentUser;
+  Future<void> _loadCurrentUser() async {
+    final user = await _authService.currentUser;
     setState(() {
       _currentUser = user;
       _isLoading = false;
@@ -86,13 +85,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(
                 CupertinoIcons.person_circle,
                 size: 80,
-                color: theme.colorScheme.onSurface.withOpacity(0.4),
+                color: theme.colorScheme.onSurface.withAlpha(102),
               ),
               const SizedBox(height: 16),
               Text(
                 'No user data found',
                 style: theme.textTheme.headlineSmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withAlpha(178),
                 ),
               ),
               const SizedBox(height: 24),
@@ -125,10 +124,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withAlpha(25),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: theme.colorScheme.primary.withOpacity(0.2),
+                          color: theme.colorScheme.primary.withAlpha(51),
                           width: 2,
                         ),
                       ),
@@ -161,7 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withAlpha(25),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -261,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.1),
+          color: theme.colorScheme.outline.withAlpha(25),
           width: 1,
         ),
       ),
@@ -270,7 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withOpacity(0.1),
+              color: theme.colorScheme.primary.withAlpha(25),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, size: 20, color: theme.colorScheme.primary),
@@ -283,7 +282,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   title,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withAlpha(178),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -323,7 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: theme.colorScheme.outline.withOpacity(0.1),
+            color: theme.colorScheme.outline.withAlpha(25),
             width: 1,
           ),
         ),
@@ -332,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withAlpha(25),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, size: 20, color: color),
@@ -353,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                      color: theme.colorScheme.onSurface.withAlpha(178),
                     ),
                   ),
                 ],
@@ -362,7 +361,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(
               CupertinoIcons.chevron_right,
               size: 16,
-              color: theme.colorScheme.onSurface.withOpacity(0.4),
+              color: theme.colorScheme.onSurface.withAlpha(102),
             ),
           ],
         ),

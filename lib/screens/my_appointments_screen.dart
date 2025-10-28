@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../models/appointment.dart';
+import '../services/auth_service.dart';
 import '../services/storage_service.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
@@ -11,7 +12,8 @@ class MyAppointmentsScreen extends StatefulWidget {
 }
 
 class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
-  late StorageService _storageService;
+  final StorageService _storageService = StorageService();
+  final AuthService _authService = AuthService();
   List<Appointment> _appointments = [];
   bool _isLoading = true;
   String _selectedFilter = 'all';
@@ -19,37 +21,39 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeStorage();
-  }
-
-  Future<void> _initializeStorage() async {
-    _storageService = await StorageService.getInstance();
-    await _loadAppointments();
+    _loadAppointments();
   }
 
   Future<void> _loadAppointments() async {
     setState(() => _isLoading = true);
     try {
+      final user = await _authService.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
       List<Appointment> appointments;
       switch (_selectedFilter) {
         case 'upcoming':
-          appointments = await _storageService.getUpcomingAppointments();
+          appointments = await _storageService.getUpcomingAppointments(user.id);
           break;
         case 'past':
-          appointments = await _storageService.getPastAppointments();
+          appointments = await _storageService.getPastAppointments(user.id);
           break;
         case 'pending':
           appointments = await _storageService.getAppointmentsByStatus(
+            user.id,
             'pending',
           );
           break;
         case 'confirmed':
           appointments = await _storageService.getAppointmentsByStatus(
+            user.id,
             'confirmed',
           );
           break;
         default:
-          appointments = await _storageService.loadAppointments();
+          appointments = await _storageService.loadAppointments(user.id);
       }
       setState(() {
         _appointments = appointments;
@@ -95,6 +99,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
   }
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -106,6 +111,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
   }
 
   void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -172,7 +178,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
               },
               selectedColor: Theme.of(
                 context,
-              ).colorScheme.primary.withOpacity(0.2),
+              ).colorScheme.primary.withAlpha(51),
               checkmarkColor: Theme.of(context).colorScheme.primary,
             ),
           );
@@ -192,7 +198,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
           side: BorderSide(
-            color: theme.colorScheme.outline.withOpacity(0.1),
+            color: theme.colorScheme.outline.withAlpha(25),
             width: 1,
           ),
         ),
@@ -224,7 +230,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                       decoration: BoxDecoration(
                         color: _getStatusColor(
                           appointment.status,
-                        ).withOpacity(0.1),
+                        ).withAlpha(25),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -251,7 +257,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     Text(
                       appointment.formattedDate,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        color: theme.colorScheme.onSurface.withAlpha(204),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -264,7 +270,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     Text(
                       appointment.formattedTime,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        color: theme.colorScheme.onSurface.withAlpha(204),
                       ),
                     ),
                   ],
@@ -283,7 +289,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                     Text(
                       appointment.customerName,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface.withOpacity(0.8),
+                        color: theme.colorScheme.onSurface.withAlpha(204),
                       ),
                     ),
                   ],
@@ -306,7 +312,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                         child: Text(
                           appointment.notes!,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurface.withOpacity(0.6),
+                            color: theme.colorScheme.onSurface.withAlpha(153),
                           ),
                         ),
                       ),
@@ -389,7 +395,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(77),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -436,7 +442,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
               '$label:',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withAlpha(178),
               ),
             ),
           ),
@@ -450,8 +456,6 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Appointments'),
@@ -509,7 +513,6 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
 
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -519,7 +522,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
             Icon(
               Icons.calendar_today_rounded,
               size: 64,
-              color: theme.colorScheme.primary.withOpacity(0.3),
+              color: theme.colorScheme.primary.withAlpha(77),
             ),
             const SizedBox(height: 16),
             Text(
@@ -535,7 +538,7 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                   : 'No appointments found for the selected filter.',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withAlpha(153),
               ),
             ),
             const SizedBox(height: 24),
