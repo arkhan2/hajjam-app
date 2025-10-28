@@ -18,10 +18,10 @@ jobs:
         run: flutter config --enable-web
         
       - name: Get dependencies
-        run: cd hajjaam_app && flutter pub get
+        run: flutter pub get    
 
       - name: Build
-        run: cd hajjaam_app && flutter build web --base-href "/hajjaam_app/"
+        run: flutter build web --base-href "/hajjam-app/"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
