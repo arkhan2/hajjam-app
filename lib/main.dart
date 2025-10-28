@@ -6,6 +6,7 @@ import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const HajjaamApp());
 }
 
@@ -52,23 +53,33 @@ class _AuthWrapperState extends State<AuthWrapper> {
       _authService = await AuthService.getInstance();
       final isLoggedIn = _authService.isLoggedIn;
 
-      setState(() {
-        _isLoggedIn = isLoggedIn;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = isLoggedIn;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      print('Error initializing auth: $e');
-      setState(() {
-        _isLoggedIn = false;
-        _isLoading = false;
-      });
+      debugPrint('❌ Error initializing auth: $e');
+      if (mounted) {
+        setState(() {
+          _isLoggedIn = false;
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      // Show a themed loading screen instead of plain scaffold
+      return MaterialApp(
+        theme: AppTheme.lightTheme,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
     }
 
     return _isLoggedIn ? const MainScreen() : const LoginScreen();
