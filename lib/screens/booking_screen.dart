@@ -323,9 +323,9 @@ class _BookingScreenState extends State<BookingScreen> {
         ),
       );
 
-      // Navigate back to home
+      // Navigate back with success flag so previous screen can refresh
       if (!mounted) return;
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

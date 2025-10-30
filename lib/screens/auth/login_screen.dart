@@ -57,6 +57,27 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await _authService.signInWithGoogle();
+      if (result.isSuccess && result.user != null) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            CupertinoPageRoute(builder: (_) => const MainScreen()),
+          );
+        }
+      } else {
+        _showErrorSnackBar(result.errorMessage ?? 'Google sign-in failed');
+      }
+    } catch (e) {
+      _showErrorSnackBar('An error occurred. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -194,6 +215,33 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Continue with Google
+                SizedBox(
+                  height: 56,
+                  child: OutlinedButton(
+                    onPressed: _isLoading ? null : _loginWithGoogle,
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Simple G icon replacement using an emoji if no asset
+                        const Text('G', style: TextStyle(fontWeight: FontWeight.w700)),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Continue with Google',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 

@@ -12,7 +12,20 @@
           "package_name": "com.example.hajjaam_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "834677698431-m3bs3fjk1gjub9adbdfimqfiu9msemfe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.hajjaam_app",
+            "certificate_hash": "42f2728bd087f90dee71f00dfd98ac20ff31ee54"
+          }
+        },
+        {
+          "client_id": "834677698431-f2leloldrcu37bd26btnkaas6uhr9i2d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDxxfpVaok6q_CQecSyg3ndoY1szte8R8k"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "834677698431-f2leloldrcu37bd26btnkaas6uhr9i2d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "834677698431-8dojonu71u4m1bbkcqek9qkon8h75l78.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.hajjaamApp"
+              }
+            }
+          ]
         }
       }
     }

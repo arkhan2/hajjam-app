@@ -59,9 +59,10 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
         _appointments = appointments;
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (e, s) {
       setState(() => _isLoading = false);
-      _showErrorSnackBar('Failed to load appointments: $e');
+      final ref = _logError('Failed to load appointments', e, s);
+      _showErrorSnackBar('Failed to load appointments. Ref: $ref');
     }
   }
 
@@ -79,8 +80,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       await _storageService.deleteAppointment(appointment.id);
       await _loadAppointments();
       _showSuccessSnackBar('Appointment deleted successfully');
-    } catch (e) {
-      _showErrorSnackBar('Failed to delete appointment: $e');
+    } catch (e, s) {
+      final ref = _logError('Failed to delete appointment', e, s);
+      _showErrorSnackBar('Failed to delete appointment. Ref: $ref');
     }
   }
 
@@ -93,8 +95,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
       await _storageService.updateAppointment(updatedAppointment);
       await _loadAppointments();
       _showSuccessSnackBar('Appointment status updated');
-    } catch (e) {
-      _showErrorSnackBar('Failed to update appointment: $e');
+    } catch (e, s) {
+      final ref = _logError('Failed to update appointment', e, s);
+      _showErrorSnackBar('Failed to update appointment. Ref: $ref');
     }
   }
 
@@ -105,9 +108,21 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: Colors.red,
       ),
     );
+  }
+
+  String _logError(String contextMessage, Object error,
+      [StackTrace? stackTrace]) {
+    final reference = DateTime.now().millisecondsSinceEpoch.toString();
+    // ignore: avoid_print
+    print('$contextMessage | ref=$reference');
+    // ignore: avoid_print
+    print('Error: $error');
+    if (stackTrace != null) {
+      debugPrintStack(stackTrace: stackTrace);
+    }
+    return reference;
   }
 
   void _showSuccessSnackBar(String message) {
@@ -408,7 +423,9 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
                   children: [
                     Text(
                       'Appointment Details',
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 20),
@@ -441,9 +458,10 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
             child: Text(
               '$label:',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface.withAlpha(178),
-              ),
+                    fontWeight: FontWeight.w600,
+                    color:
+                        Theme.of(context).colorScheme.onSurface.withAlpha(178),
+                  ),
             ),
           ),
           Expanded(
@@ -476,35 +494,35 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
             child: _isLoading
                 ? const Center(child: CupertinoActivityIndicator())
                 : _appointments.isEmpty
-                ? _buildEmptyState()
-                : RefreshIndicator(
-                    onRefresh: _refreshAppointments,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemCount: _appointments.length,
-                      itemBuilder: (context, index) {
-                        final appointment = _appointments[index];
-                        return Dismissible(
-                          key: Key(appointment.id),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 20),
-                            color: Colors.red,
-                            child: const Icon(
-                              Icons.delete_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                          confirmDismiss: (direction) async {
-                            _showDeleteConfirmation(appointment);
-                            return false; // We handle deletion in the confirmation dialog
+                    ? _buildEmptyState()
+                    : RefreshIndicator(
+                        onRefresh: _refreshAppointments,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: _appointments.length,
+                          itemBuilder: (context, index) {
+                            final appointment = _appointments[index];
+                            return Dismissible(
+                              key: Key(appointment.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                color: Colors.red,
+                                child: const Icon(
+                                  Icons.delete_rounded,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              confirmDismiss: (direction) async {
+                                _showDeleteConfirmation(appointment);
+                                return false; // We handle deletion in the confirmation dialog
+                              },
+                              child: _buildAppointmentCard(appointment),
+                            );
                           },
-                          child: _buildAppointmentCard(appointment),
-                        );
-                      },
-                    ),
-                  ),
+                        ),
+                      ),
           ),
         ],
       ),
@@ -543,9 +561,12 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () {
-                // Navigate to booking screen
-                Navigator.pushNamed(context, '/booking');
+              onPressed: () async {
+                // Navigate to booking screen and refresh on return if created
+                final result = await Navigator.pushNamed(context, '/booking');
+                if (result == true) {
+                  await _refreshAppointments();
+                }
               },
               icon: const Icon(Icons.add_rounded),
               label: const Text('Book Appointment'),

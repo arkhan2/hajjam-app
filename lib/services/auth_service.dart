@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user_model.dart' as app_user;
 
 class AuthService {
@@ -72,13 +73,93 @@ class AuthService {
       return AuthResult.failure(e.message ?? 'Invalid email or password');
     } catch (e) {
       debugPrint('Login failed: $e');
-      return AuthResult.failure('Something went wrong. Please try again.');
+      return AuthResult.failure('Something went wrongqq. Please try again.');
     }
   }
 
   // Logout user
   Future<void> logout() async {
     await _firebaseAuth.signOut();
+  }
+
+  // Sign in with Google (web + mobile/desktop)
+  Future<AuthResult> signInWithGoogle() async {
+    try {
+      UserCredential userCredential;
+
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        provider.setCustomParameters({'prompt': 'select_account'});
+        userCredential = await _firebaseAuth.signInWithPopup(provider);
+      } else {
+        try {
+          final GoogleSignIn googleSignIn = GoogleSignIn();
+          final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+          if (googleUser == null) {
+            return AuthResult.failure('Sign-in aborted');
+          }
+          final GoogleSignInAuthentication googleAuth =
+              await googleUser.authentication;
+          final credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+          userCredential =
+              await _firebaseAuth.signInWithCredential(credential);
+        } on Exception {
+          // Fallback for desktop platforms where google_sign_in may not be supported
+          userCredential =
+              await _firebaseAuth.signInWithProvider(GoogleAuthProvider());
+        }
+      }
+
+      final firebaseUser = userCredential.user ?? _firebaseAuth.currentUser;
+      if (firebaseUser == null) {
+        return AuthResult.failure('Failed to sign in.');
+      }
+
+      final usersRef = _firestore.collection('users').doc(firebaseUser.uid);
+      final now = DateTime.now();
+      final existing = await usersRef.get();
+      final existingData = existing.data() ?? <String, dynamic>{};
+      final userType = (existingData['userType'] as String?) ?? 'user';
+      final createdAt = existing.exists
+          ? (existingData['createdAt'] as String?) ?? now.toIso8601String()
+          : now.toIso8601String();
+      final resolvedName = (firebaseUser.displayName?.trim().isNotEmpty == true)
+          ? firebaseUser.displayName
+          : (firebaseUser.email != null
+              ? firebaseUser.email!.split('@').first
+              : 'User');
+
+      final update = <String, dynamic>{
+        // Required fields
+        'uid': firebaseUser.uid,
+        'email': firebaseUser.email,
+        'displayName': resolvedName,
+        'photoURL': firebaseUser.photoURL,
+        'userType': userType,
+        'createdAt': createdAt,
+        'lastLoginAt': now.toIso8601String(),
+        // Back-compat with existing model
+        'name': resolvedName,
+        'profileImageUrl': firebaseUser.photoURL,
+      };
+
+      await usersRef.set(update, SetOptions(merge: true));
+
+      final user = await currentUser; // reads mapped app_user.User from Firestore
+      if (user == null) {
+        return AuthResult.failure('User profile missing.');
+      }
+      return AuthResult.success(user);
+    } on FirebaseAuthException catch (e, s) {
+      debugPrint('Google sign-in error: ${e.message}\n$s');
+      return AuthResult.failure(e.message ?? 'Google sign-in failed.');
+    } catch (e, s) {
+      debugPrint('Google sign-in failed: $e\n$s');
+      return AuthResult.failure('Unable to sign in with Google.');
+    }
   }
 }
 

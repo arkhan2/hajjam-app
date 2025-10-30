@@ -43,6 +43,18 @@ class AppTheme {
       scaffoldBackgroundColor: secondarySystemBackground,
       cardColor: systemBackground,
       dividerColor: systemGray4,
+      
+      // iOS-like page transitions across platforms
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+        },
+      ),
 
       // App Bar Theme
       appBarTheme: const AppBarTheme(
@@ -300,6 +312,18 @@ class AppTheme {
       scaffoldBackgroundColor: darkSystemBackground,
       cardColor: darkSecondarySystemBackground,
       dividerColor: systemGray4,
+
+      // iOS-like page transitions across platforms
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
+        },
+      ),
 
       // App Bar Theme
       appBarTheme: const AppBarTheme(
