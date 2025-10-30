@@ -24,6 +24,10 @@ Future<void> main() async {
   runApp(const HajjaamApp());
 }
 
+// Route observer for screens that need to react when coming back into focus
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 class HajjaamApp extends StatelessWidget {
   const HajjaamApp({super.key});
 
@@ -35,6 +39,7 @@ class HajjaamApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      navigatorObservers: [routeObserver],
       home: const AuthWrapper(),
       routes: {
         '/booking': (context) => const BookingScreen(),

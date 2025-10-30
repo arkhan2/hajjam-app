@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import '../models/appointment.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
+import '../main.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
   const MyAppointmentsScreen({super.key});
@@ -11,7 +13,7 @@ class MyAppointmentsScreen extends StatefulWidget {
   State<MyAppointmentsScreen> createState() => _MyAppointmentsScreenState();
 }
 
-class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
+class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> with RouteAware {
   final StorageService _storageService = StorageService();
   final AuthService _authService = AuthService();
   List<Appointment> _appointments = [];
@@ -22,6 +24,27 @@ class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> {
   void initState() {
     super.initState();
     _loadAppointments();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Called when coming back to this screen (e.g., after booking)
+  @override
+  void didPopNext() {
+    _refreshAppointments();
   }
 
   Future<void> _loadAppointments() async {

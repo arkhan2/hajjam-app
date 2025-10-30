@@ -15,14 +15,13 @@ class _MainScreenState extends State<MainScreen> {
 
   // Keep both screens persistent using IndexedStack
   late final List<Widget> _screens;
-  final GlobalKey _appointmentsScreenKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _screens = [
       const HomeScreen(),
-      MyAppointmentsScreen(key: _appointmentsScreenKey),
+      const MyAppointmentsScreen(),
       const ProfileScreen(),
     ];
   }
@@ -31,16 +30,6 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedIndex = index;
     });
-    if (index == 1) {
-      // Ensure appointments refresh whenever the tab is shown
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final state = _appointmentsScreenKey.currentState;
-        try {
-          // ignore: avoid_dynamic_calls
-          (state as dynamic).refreshAppointments();
-        } catch (_) {}
-      });
-    }
   }
 
   @override
