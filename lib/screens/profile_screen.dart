@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../services/auth_service.dart';
-import '../../models/user_model.dart';
+import 'package:hajjaam_core/hajjaam_core.dart';
 import 'auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {

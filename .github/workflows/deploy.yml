@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages and Firebase Hosting
 
 on:
   push:
@@ -37,3 +37,16 @@ jobs:
           publish_dir: ./build/web
           # optional: specify branch, default is 'gh-pages'
           # publish_branch: gh-pages
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: firebase deploy --only hosting --project hajjam-firebase-project

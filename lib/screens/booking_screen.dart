@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../models/appointment.dart';
-import '../services/auth_service.dart';
-import '../services/storage_service.dart';
+import 'package:hajjaam_core/hajjaam_core.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});

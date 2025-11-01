@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // ✅ Added for error handling
-import '../../services/auth_service.dart';
+import 'package:hajjaam_core/hajjaam_core.dart';
 import '../main_screen.dart';
 import 'login_screen.dart';
 
@@ -24,7 +24,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  String _selectedUserType = 'user';
+  // Customer app only allows 'user' type
+  final String _selectedUserType = 'user';
   String? _errorText; // ✅ For showing error message on screen
 
   @override
@@ -192,36 +193,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 16),
                 ],
 
-                // User Type Selection
-                Text(
-                  'I am a:',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildUserTypeOption(
-                        'user',
-                        'Customer',
-                        CupertinoIcons.person,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildUserTypeOption(
-                        'barber',
-                        'Barber',
-                        CupertinoIcons.scissors,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
                 _buildTextField(
                   controller: _nameController,
                   label: 'Full Name',
@@ -384,54 +355,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildUserTypeOption(String value, String label, IconData icon) {
-    final theme = Theme.of(context);
-    final isSelected = _selectedUserType == value;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() => _selectedUserType = value);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary.withAlpha(25)
-              : theme.cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.outline.withAlpha(51),
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withAlpha(153),
-              size: 24,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: isSelected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-          ],
         ),
       ),
     );

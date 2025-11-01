@@ -1,5 +1,5 @@
-name: hajjaam_app
-description: "A new Flutter project."
+name: hajjaam_customer
+description: "Hajjaam Customer App - Book appointments with barbers"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -17,6 +17,8 @@ dependencies:
   firebase_auth: ^5.1.1
   cloud_firestore: ^5.0.2
   google_sign_in: ^6.2.1
+  hajjaam_core:
+    path: ../hajjaam_core
 
 dev_dependencies:
   flutter_test:

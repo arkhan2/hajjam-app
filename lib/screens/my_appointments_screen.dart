@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter/cupertino.dart';
-import '../models/appointment.dart';
-import '../services/auth_service.dart';
-import '../services/storage_service.dart';
+import 'package:hajjaam_core/hajjaam_core.dart';
 import '../main.dart';
 
 class MyAppointmentsScreen extends StatefulWidget {
@@ -13,7 +10,8 @@ class MyAppointmentsScreen extends StatefulWidget {
   State<MyAppointmentsScreen> createState() => _MyAppointmentsScreenState();
 }
 
-class _MyAppointmentsScreenState extends State<MyAppointmentsScreen> with RouteAware {
+class _MyAppointmentsScreenState extends State<MyAppointmentsScreen>
+    with RouteAware {
   final StorageService _storageService = StorageService();
   final AuthService _authService = AuthService();
   List<Appointment> _appointments = [];

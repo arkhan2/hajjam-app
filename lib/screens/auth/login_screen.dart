@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../../services/auth_service.dart';
+import 'package:hajjaam_core/hajjaam_core.dart';
 import '../main_screen.dart';
 import 'signup_screen.dart';
 
